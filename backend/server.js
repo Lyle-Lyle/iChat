@@ -8,6 +8,7 @@ const authRouter = require('./routes/authRoute')
 const bodyParser = require('body-parser')
 const cookieParser = require('cookie-parser')
 
+const messengerRoute = require('./routes/messengerRoute');
 
 
 
@@ -18,6 +19,7 @@ dotenv.config({
 app.use(bodyParser.json())
 app.use(cookieParser())
 app.use('/api/ichat', authRouter)
+app.use('/api/ichat', messengerRoute);
 
 // 配置端口
 const PORT = process.env.PORT || 8080

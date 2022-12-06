@@ -119,6 +119,8 @@ module.exports.userRegister = (req, res) => {
   console.log('register is working');
 }
 
+// 用户登录时从请求体中拿到 email 和 password并进行authentication
+
 module.exports.userLogin = async (req, res) => {
   console.log(req.body)
   const error = []
@@ -129,4 +131,63 @@ module.exports.userLogin = async (req, res) => {
   if (!password) {
     error.push('Please provide your password')
   }
-}
+  if (email && !validator.isEmail(email)) {
+    error.push('Please provide your valide email')
+  }
+  // 如果有error就返回400状态码
+  if (error.length > 0) {
+    res.status(400).json({
+      error: {
+        errorMessage: error
+      }
+    })
+  } else {
+    try {
+      // 不加select 就不会显示 password 这个字段
+      const checkUser = await registerModel.findOne({
+        email: email,
+      }).select('+password');
+
+      if (checkUser) {
+        const matchPassword = await bcrypt.compare(password, checkUser.password);
+
+
+        if (matchPassword) {
+          const token = jwt.sign({
+            id: checkUser._id,
+            email: checkUser.email,
+            userName: checkUser.userName,
+            image: checkUser.image,
+            registerTime: checkUser.createdAt
+          }, process.env.SECRET, {
+            expiresIn: process.env.TOKEN_EXP
+          });
+          const options = { expires: new Date(Date.now() + process.env.COOKIE_EXP * 24 * 60 * 60 * 1000) }
+          res.status(200).cookie('authToken', token, options).json({
+            successMessage: 'Your Login Successful', token
+          })
+
+        } else {
+          res.status(400).json({
+            error: {
+              errorMessage: ['Your Password Not Valid']
+            }
+          })
+        }
+      } else {
+        res.status(400).json({
+          error: {
+            errorMessage: ['Your Email Not Found ']
+          }
+        })
+      }
+
+    } catch {
+      res.status(404).json({
+        error: {
+          errorMessage: ['Internal Server Error']
+        }
+      })
+    }
+  }
+} 

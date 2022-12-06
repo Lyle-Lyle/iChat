@@ -2,10 +2,11 @@ import { legacy_createStore as createStore, compose, combineReducers, applyMiddl
 import thunkMiddleware from 'redux-thunk'
 
 import { authReducer } from './reducers/authReducer';
-
+import { messengerReducer } from './reducers/messengerReducer';
 
 const rootReducer = combineReducers({
   auth: authReducer,
+  messenger: messengerReducer
 
 })
 
